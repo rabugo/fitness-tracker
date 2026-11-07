@@ -18,13 +18,13 @@ String formatSetValues(SetValues s, List<Measure> measures) {
   return parts.isEmpty ? '–' : parts.join(' · ');
 }
 
-/// A saved set in the list: "1 · 8 × 60 kg · 0:42 · rest 1:30".
+/// A saved set in the list: "1 · 8 × 60 kg · 0:42 · rested 1:30".
 String formatSetLine(WorkoutSet s, List<Measure> measures) {
   final parts = ['${s.position}', formatSetValues(s, measures)];
   final time = s.timeSeconds;
   if (!measures.contains(Measure.time) && time != null) parts.add(formatClock(time));
   final rest = s.restSeconds;
-  if (rest != null) parts.add('rest ${formatClock(rest)}');
+  if (rest != null) parts.add('rested ${formatClock(rest)}');
   return parts.join(' · ');
 }
 

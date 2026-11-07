@@ -105,6 +105,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
     await repo.updateSet(id, v);
   }
 
+  /// Stopped by accident: the set runs again from its original start.
+  Future<void> _continueSet(WorkoutSet s) async {
+    setState(() => _enteringId = null);
+    await repo.continueSet(s.id);
+  }
+
   Future<void> _saveCorrection(WorkoutSet s, SetValues v) async {
     setState(() => _correctingId = null);
     await repo.updateSet(s.id, v);
@@ -158,7 +164,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
     };
     final caption = switch (mode) {
       TimerMode.running => 'Tap to stop',
-      TimerMode.resting => 'Tap to start set $next',
+      TimerMode.resting => 'Resting after set ${_lastSet!.position} · tap to start set $next',
       _ => null,
     };
     final listed = _sets.where((s) => s.id != running?.id && s.id != _enteringId).toList();
@@ -194,13 +200,20 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
             _card(
               c,
               'Set ${entering.position}',
-              SetForm(
-                key: ValueKey(entering.id),
-                measures: we.measures,
-                initial: entering,
-                showTime: true,
-                onSave: _saveEntering,
-                onDelete: () => _removeSet(entering),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 12,
+                children: [
+                  SetForm(
+                    key: ValueKey(entering.id),
+                    measures: we.measures,
+                    initial: entering,
+                    showTime: true,
+                    onSave: _saveEntering,
+                    onDelete: () => _removeSet(entering),
+                  ),
+                  OutlinedButton(onPressed: () => _continueSet(entering), child: const Text('Continue set')),
+                ],
               ),
             ),
             const SizedBox(height: 16),

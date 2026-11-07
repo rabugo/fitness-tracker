@@ -34,7 +34,7 @@ class FitnessApp extends StatelessWidget {
   }
 }
 
-/// Tabs at the bottom (design.md): Log and History. Schedule joins with feature 02.
+/// Tabs at the bottom (design.md): Log and History. Schedule joins with feature 03.
 class HomeShell extends StatelessWidget {
   const HomeShell({super.key});
 

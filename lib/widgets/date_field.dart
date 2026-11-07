@@ -4,11 +4,14 @@ import '../util/format.dart';
 
 /// A date shown as DD/MM/YYYY; tapping it opens the date picker. No dates in the future.
 class DateField extends StatelessWidget {
-  const DateField({super.key, required this.label, required this.value, required this.onChanged});
+  const DateField({super.key, required this.label, required this.value, required this.onChanged, this.centered = false});
 
   final String label;
   final String value; // YYYY-MM-DD
   final ValueChanged<String> onChanged;
+
+  /// Centred and larger, for the top of the workout screen.
+  final bool centered;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +28,16 @@ class DateField extends StatelessWidget {
         if (picked != null) onChanged(toIsoDate(picked));
       },
       child: InputDecorator(
-        decoration: InputDecoration(labelText: label, suffixIcon: const Icon(Icons.calendar_today, size: 18)),
-        child: Text(formatDate(value), style: const TextStyle(fontSize: 18)),
+        decoration: InputDecoration(
+          labelText: label,
+          floatingLabelAlignment: centered ? FloatingLabelAlignment.center : FloatingLabelAlignment.start,
+          suffixIcon: const Icon(Icons.calendar_today, size: 18),
+        ),
+        child: Text(
+          formatDate(value),
+          textAlign: centered ? TextAlign.center : TextAlign.start,
+          style: TextStyle(fontSize: centered ? 30 : 18, fontWeight: centered ? FontWeight.w300 : FontWeight.normal),
+        ),
       ),
     );
   }

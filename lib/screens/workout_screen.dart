@@ -65,9 +65,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> with LoadsFromRepo {
           _NameField(key: ValueKey(w.id), initial: w.name, onSave: (name) => repo.renameWorkout(w.id, name)),
           const SizedBox(height: 12),
           if (w.status == WorkoutStatus.live)
-            Text(formatDate(w.date), style: TextStyle(color: c.textSecondary))
+            Text(formatDate(w.date),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: c.textSecondary, fontSize: 30, fontWeight: FontWeight.w300))
           else
-            DateField(label: 'Date', value: w.date, onChanged: (d) => repo.setWorkoutDate(w.id, d)),
+            DateField(label: 'Date', value: w.date, centered: true, onChanged: (d) => repo.setWorkoutDate(w.id, d)),
           const SizedBox(height: 16),
           for (final (i, we) in _exercises.indexed)
             Padding(
@@ -176,8 +178,10 @@ class _NameFieldState extends State<_NameField> {
   Widget build(BuildContext context) => TextField(
         controller: _controller,
         focusNode: _focus,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _focus.unfocus(),
-        decoration: const InputDecoration(labelText: 'Name'),
+        decoration: const InputDecoration(labelText: 'Name', floatingLabelAlignment: FloatingLabelAlignment.center),
       );
 }

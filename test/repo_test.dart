@@ -69,10 +69,25 @@ void main() {
     final we = (await repo.workoutExercises(w)).first;
     final s = await repo.sets(we.id);
     expect(s[0].restSeconds, 90);
-    expect(formatSetLine(s[0], bench.measures), '1 · 8 × 60 kg · 0:42 · rest 1:30');
+    expect(formatSetLine(s[0], bench.measures), '1 · 8 × 60 kg · 0:42 · rested 1:30');
     expect(s[1].restSeconds, isNull, reason: 'reopened exercise: the dropped rest stays empty');
     expect(we.done, isTrue);
     expect(we.setCount, 3);
+  });
+
+  test('continue set after an accidental stop keeps the original start', () async {
+    final t0 = DateTime(2026, 11, 7, 9).millisecondsSinceEpoch;
+    final w = await repo.createWorkout(WorkoutStatus.live);
+    final we = await repo.addWorkoutExercise(w, bench.id);
+    await repo.startSet(we, t0, endRest: false);
+    await repo.stopSet((await repo.sets(we)).single, t0 + 5000); // tapped by accident at 0:05
+    await repo.continueSet((await repo.sets(we)).single.id);
+    var s = (await repo.sets(we)).single;
+    expect(s.timeSeconds, isNull, reason: 'running again');
+    expect(s.startedAt, t0, reason: 'still counted from the original start');
+    await repo.stopSet(s, t0 + 45000);
+    s = (await repo.sets(we)).single;
+    expect(s.timeSeconds, 45);
   });
 
   test('resume, reorder, duration from the timers, finish', () async {

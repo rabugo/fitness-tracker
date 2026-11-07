@@ -203,6 +203,12 @@ class Repo {
     _changed();
   }
 
+  /// Undoes an accidental stop: the set runs again from its original start.
+  Future<void> continueSet(int id) async {
+    await db.update('workout_set', {'time_seconds': null}, where: 'id = ? AND started_at IS NOT NULL', whereArgs: [id]);
+    _changed();
+  }
+
   Future<void> updateSet(int id, SetValues v) async {
     await db.update(
       'workout_set',
