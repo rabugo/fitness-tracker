@@ -124,8 +124,13 @@ void main() {
       await repo.addManualSet(we3, const SetValues(reps: 5, weightKg: 70));
     }
     expect(await repo.timedDuration(w3), isNull);
-    await repo.finishWorkout(w3,
-        name: 'Past', date: '2026-10-15', durationSeconds: parseDuration('1:05'), notes: 'felt good');
+    await repo.finishWorkout(
+      w3,
+      name: 'Past',
+      date: '2026-10-15',
+      durationSeconds: parseDuration('1:05'),
+      notes: 'felt good',
+    );
     last = await repo.lastSetsByExercise();
     expect(formatLastTime(last[bench.id], bench.measures), 'Last: 3 × 5 @ 70 kg');
 

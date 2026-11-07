@@ -35,7 +35,8 @@ class _SetFormState extends State<SetForm> {
   late final _reps = TextEditingController(text: widget.initial.reps?.toString() ?? '');
   late final _kg = TextEditingController(text: _num(widget.initial.weightKg));
   late final _time = TextEditingController(
-      text: widget.initial.timeSeconds != null ? formatClock(widget.initial.timeSeconds!) : '');
+    text: widget.initial.timeSeconds != null ? formatClock(widget.initial.timeSeconds!) : '',
+  );
   late final _km = TextEditingController(text: _num(widget.initial.distanceKm));
 
   static String _num(double? n) => n != null ? formatNumber(n) : '';
@@ -53,22 +54,24 @@ class _SetFormState extends State<SetForm> {
 
   void _save() {
     final reps = parseNumber(_reps.text);
-    widget.onSave(SetValues(
-      reps: _has(Measure.reps) && reps != null ? reps.round() : null,
-      weightKg: _has(Measure.weight) ? parseNumber(_kg.text) : null,
-      timeSeconds: _withTime ? parseClock(_time.text) : null,
-      distanceKm: _has(Measure.distance) ? parseNumber(_km.text) : null,
-    ));
+    widget.onSave(
+      SetValues(
+        reps: _has(Measure.reps) && reps != null ? reps.round() : null,
+        weightKg: _has(Measure.weight) ? parseNumber(_kg.text) : null,
+        timeSeconds: _withTime ? parseClock(_time.text) : null,
+        distanceKm: _has(Measure.distance) ? parseNumber(_km.text) : null,
+      ),
+    );
   }
 
   Widget _field(String label, TextEditingController c, TextInputType type, String hint) => Expanded(
-        child: TextField(
-          controller: c,
-          keyboardType: type,
-          style: const TextStyle(fontSize: 18),
-          decoration: InputDecoration(labelText: label, hintText: hint),
-        ),
-      );
+    child: TextField(
+      controller: c,
+      keyboardType: type,
+      style: const TextStyle(fontSize: 18),
+      decoration: InputDecoration(labelText: label, hintText: hint),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +93,9 @@ class _SetFormState extends State<SetForm> {
           Row(
             children: [
               if (widget.onCancel != null)
-                Expanded(child: TextButton(onPressed: widget.onCancel, child: const Text('Cancel'))),
+                Expanded(
+                  child: TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
+                ),
               if (widget.onDelete != null)
                 Expanded(
                   child: TextButton(

@@ -82,13 +82,21 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
 
   bool get _resting {
     final s = _lastSet;
-    return _live && _running == null && _enteringId == null && !_reopened && s?.endedAt != null && s?.restSeconds == null;
+    return _live &&
+        _running == null &&
+        _enteringId == null &&
+        !_reopened &&
+        s?.endedAt != null &&
+        s?.restSeconds == null;
   }
 
   Future<void> _tapCircle() async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final running = _running;
-    if (running != null) {
+    final paused = _sets.where((s) => s.id == _enteringId).firstOrNull;
+    if (paused != null) {
+      await _continueSet(paused);
+    } else if (running != null) {
       setState(() => _enteringId = running.id);
       await repo.stopSet(running, now);
     } else {
@@ -105,10 +113,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
     await repo.updateSet(id, v);
   }
 
-  /// Stopped by accident: the set runs again from its original start.
+  /// Stopped by accident: the set runs again from its original start. The paused state is
+  /// cleared only after the set is running again in the loaded data, so the rest timer
+  /// never shows in between.
   Future<void> _continueSet(WorkoutSet s) async {
-    setState(() => _enteringId = null);
     await repo.continueSet(s.id);
+    await load();
+    if (mounted) setState(() => _enteringId = null);
   }
 
   Future<void> _saveCorrection(WorkoutSet s, SetValues v) async {
@@ -130,14 +141,17 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
   }
 
   Widget _card(AppColors c, String title, Widget child) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: c.element, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 8,
-          children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w700)), child],
-        ),
-      );
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(color: c.element, borderRadius: BorderRadius.circular(12)),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        child,
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -152,20 +166,27 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
     final mode = running != null
         ? TimerMode.running
         : entering != null
-            ? TimerMode.stopped
-            : _resting
-                ? TimerMode.resting
-                : TimerMode.idle;
+        ? TimerMode.stopped
+        : _resting
+        ? TimerMode.resting
+        : TimerMode.idle;
     final seconds = switch (mode) {
       TimerMode.running => (now - running!.startedAt!) / 1000,
       TimerMode.stopped => (entering!.timeSeconds ?? 0).toDouble(),
       TimerMode.resting => (now - _lastSet!.endedAt!) / 1000,
       TimerMode.idle => 0.0,
     };
-    final caption = switch (mode) {
-      TimerMode.running => 'Tap to stop',
-      TimerMode.resting => 'Resting after set ${_lastSet!.position} · tap to start set $next',
-      _ => null,
+    final (caption, captionStyle) = switch (mode) {
+      TimerMode.running => ('Tap to stop', TextStyle(color: c.textSecondary)),
+      TimerMode.stopped => (
+        'Paused · tap the timer to continue',
+        TextStyle(color: c.paused, fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+      TimerMode.resting => (
+        'Resting after set ${_lastSet!.position} · tap to start set $next',
+        TextStyle(color: c.rest, fontSize: 18, fontWeight: FontWeight.w700),
+      ),
+      TimerMode.idle => (null, null),
     };
     final listed = _sets.where((s) => s.id != running?.id && s.id != _enteringId).toList();
 
@@ -174,14 +195,18 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(formatLastTime(_last, we.measures), textAlign: TextAlign.center, style: TextStyle(color: c.textSecondary)),
+          Text(
+            formatLastTime(_last, we.measures),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: c.textSecondary),
+          ),
           const SizedBox(height: 16),
           if (_live) ...[
             TimerCircle(mode: mode, seconds: seconds, idleLabel: 'Start set $next', onTap: _tapCircle),
             if (caption != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(caption, textAlign: TextAlign.center, style: TextStyle(color: c.textSecondary)),
+                child: Text(caption, textAlign: TextAlign.center, style: captionStyle),
               ),
           ] else
             _card(
@@ -200,20 +225,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
             _card(
               c,
               'Set ${entering.position}',
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 12,
-                children: [
-                  SetForm(
-                    key: ValueKey(entering.id),
-                    measures: we.measures,
-                    initial: entering,
-                    showTime: true,
-                    onSave: _saveEntering,
-                    onDelete: () => _removeSet(entering),
-                  ),
-                  OutlinedButton(onPressed: () => _continueSet(entering), child: const Text('Continue set')),
-                ],
+              SetForm(
+                key: ValueKey(entering.id),
+                measures: we.measures,
+                initial: entering,
+                showTime: true,
+                onSave: _saveEntering,
+                onDelete: () => _removeSet(entering),
               ),
             ),
             const SizedBox(height: 16),
@@ -249,10 +267,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
                   ),
           if (listed.isNotEmpty) ...[
             const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: running != null || entering != null ? null : _done,
-              child: const Text('Done'),
-            ),
+            OutlinedButton(onPressed: running != null || entering != null ? null : _done, child: const Text('Done')),
           ],
         ],
       ),

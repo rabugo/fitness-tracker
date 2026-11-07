@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Colours follow design.md: black and white base, blue for actions, green = done/saved,
-/// orange = upcoming/resting, red = delete/error. Never yellow, purple or pink.
+/// Colours follow design.md: black and white base, blue for actions and the running set,
+/// yellow = set paused, red = rest timer and delete/error, green = done/saved,
+/// orange = upcoming/needs attention. Never purple or pink.
 class AppColors {
   const AppColors({
     required this.text,
@@ -15,10 +16,17 @@ class AppColors {
     required this.success,
     required this.warning,
     required this.danger,
+    required this.paused,
   });
 
   final Color text, background, element, selected, textSecondary, border;
   final Color primary, onPrimary, success, warning, danger;
+
+  /// A stopped set waiting to be saved or continued.
+  final Color paused;
+
+  /// The rest timer (design.md: red).
+  Color get rest => danger;
 
   static const light = AppColors(
     text: Color(0xFF000000),
@@ -32,6 +40,7 @@ class AppColors {
     success: Color(0xFF1F9D55),
     warning: Color(0xFFE8710A),
     danger: Color(0xFFD93025),
+    paused: Color(0xFFD4A000),
   );
 
   static const dark = AppColors(
@@ -46,6 +55,7 @@ class AppColors {
     success: Color(0xFF34C759),
     warning: Color(0xFFFF9F0A),
     danger: Color(0xFFFF453A),
+    paused: Color(0xFFFFD60A),
   );
 
   static AppColors of(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? dark : light;
@@ -95,9 +105,14 @@ ThemeData buildTheme(AppColors c, Brightness brightness) {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: c.element,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: c.border)),
-      enabledBorder:
-          OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: c.border)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: c.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: c.border),
+      ),
     ),
     dividerTheme: DividerThemeData(color: c.border, thickness: 0.5),
   );

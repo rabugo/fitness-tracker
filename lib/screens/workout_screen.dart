@@ -46,7 +46,12 @@ class _WorkoutScreenState extends State<WorkoutScreen> with LoadsFromRepo {
   }
 
   Future<void> _remove(WorkoutExercise we) async {
-    final yes = await confirm(context, title: 'Remove ${we.name}?', message: 'Its sets are removed too.', action: 'Remove');
+    final yes = await confirm(
+      context,
+      title: 'Remove ${we.name}?',
+      message: 'Its sets are removed too.',
+      action: 'Remove',
+    );
     if (yes) await repo.removeWorkoutExercise(we.id);
   }
 
@@ -59,82 +64,105 @@ class _WorkoutScreenState extends State<WorkoutScreen> with LoadsFromRepo {
 
     return Scaffold(
       appBar: AppBar(title: Text(editing ? 'Edit workout' : 'Workout')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _NameField(key: ValueKey(w.id), initial: w.name, onSave: (name) => repo.renameWorkout(w.id, name)),
-          const SizedBox(height: 12),
-          if (w.status == WorkoutStatus.live)
-            Text(formatDate(w.date),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: c.textSecondary, fontSize: 30, fontWeight: FontWeight.w300))
-          else
-            DateField(label: 'Date', value: w.date, centered: true, onChanged: (d) => repo.setWorkoutDate(w.id, d)),
-          const SizedBox(height: 16),
-          for (final (i, we) in _exercises.indexed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Material(
-                color: c.element,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.border)),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => _open(we),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            child: we.done
-                                ? Text('${we.name} · ${we.setCount} ${we.setCount == 1 ? 'set' : 'sets'} ✓',
-                                    style: TextStyle(color: c.success, fontSize: 16))
-                                : Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(we.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                                      Text('${we.setCount} ${we.setCount == 1 ? 'set' : 'sets'}',
-                                          style: TextStyle(color: c.textSecondary)),
-                                    ],
+      // Centred both ways while it fits on the screen; scrolls once the list is longer.
+      body: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: _content(w, c, editing),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _content(Workout w, AppColors c, bool editing) {
+    return [
+      if (w.status == WorkoutStatus.live)
+        Text(
+          formatDate(w.date),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: c.textSecondary, fontSize: 30, fontWeight: FontWeight.w300),
+        )
+      else
+        DateField(label: 'Date', value: w.date, centered: true, onChanged: (d) => repo.setWorkoutDate(w.id, d)),
+      const SizedBox(height: 12),
+      _NameField(key: ValueKey(w.id), initial: w.name, onSave: (name) => repo.renameWorkout(w.id, name)),
+      const SizedBox(height: 16),
+      for (final (i, we) in _exercises.indexed)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Material(
+            color: c.element,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: c.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => _open(we),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: we.done
+                            ? Text(
+                                '${we.name} · ${we.setCount} ${we.setCount == 1 ? 'set' : 'sets'} ✓',
+                                style: TextStyle(color: c.success, fontSize: 16),
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(we.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                                  Text(
+                                    '${we.setCount} ${we.setCount == 1 ? 'set' : 'sets'}',
+                                    style: TextStyle(color: c.textSecondary),
                                   ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Move up',
-                          onPressed: i == 0 ? null : () => repo.moveWorkoutExercise(w.id, we.id, -1),
-                          icon: const Icon(Icons.arrow_upward),
-                        ),
-                        IconButton(
-                          tooltip: 'Move down',
-                          onPressed: i == _exercises.length - 1 ? null : () => repo.moveWorkoutExercise(w.id, we.id, 1),
-                          icon: const Icon(Icons.arrow_downward),
-                        ),
-                        IconButton(
-                          tooltip: 'Remove',
-                          color: c.danger,
-                          onPressed: () => _remove(we),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
+                                ],
+                              ),
+                      ),
                     ),
-                  ),
+                    IconButton(
+                      tooltip: 'Move up',
+                      onPressed: i == 0 ? null : () => repo.moveWorkoutExercise(w.id, we.id, -1),
+                      icon: const Icon(Icons.arrow_upward),
+                    ),
+                    IconButton(
+                      tooltip: 'Move down',
+                      onPressed: i == _exercises.length - 1 ? null : () => repo.moveWorkoutExercise(w.id, we.id, 1),
+                      icon: const Icon(Icons.arrow_downward),
+                    ),
+                    IconButton(
+                      tooltip: 'Remove',
+                      color: c.danger,
+                      onPressed: () => _remove(we),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
               ),
             ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            onPressed: () => pushScreen(context, PickScreen(workoutId: w.id)),
-            child: const Text('Add exercise'),
           ),
-          const SizedBox(height: 12),
-          FilledButton(
-            onPressed: _exercises.isEmpty ? null : () => pushScreen(context, FinishScreen(workoutId: w.id)),
-            child: Text(editing ? 'Save changes' : 'Finish workout'),
-          ),
-        ],
+        ),
+      const SizedBox(height: 8),
+      OutlinedButton(
+        onPressed: () => pushScreen(context, PickScreen(workoutId: w.id)),
+        child: const Text('Add exercise'),
       ),
-    );
+      const SizedBox(height: 12),
+      FilledButton(
+        onPressed: _exercises.isEmpty ? null : () => pushScreen(context, FinishScreen(workoutId: w.id)),
+        child: Text(editing ? 'Save changes' : 'Finish workout'),
+      ),
+    ];
   }
 }
 
@@ -176,12 +204,12 @@ class _NameFieldState extends State<_NameField> {
 
   @override
   Widget build(BuildContext context) => TextField(
-        controller: _controller,
-        focusNode: _focus,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-        textInputAction: TextInputAction.done,
-        onSubmitted: (_) => _focus.unfocus(),
-        decoration: const InputDecoration(labelText: 'Name', floatingLabelAlignment: FloatingLabelAlignment.center),
-      );
+    controller: _controller,
+    focusNode: _focus,
+    textAlign: TextAlign.center,
+    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+    textInputAction: TextInputAction.done,
+    onSubmitted: (_) => _focus.unfocus(),
+    decoration: const InputDecoration(labelText: 'Name', floatingLabelAlignment: FloatingLabelAlignment.center),
+  );
 }

@@ -89,7 +89,10 @@ class _FinishScreenState extends State<FinishScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          TextField(controller: _name, decoration: const InputDecoration(labelText: 'Name')),
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
           const SizedBox(height: 12),
           DateField(label: 'Date', value: _date, onChanged: (d) => setState(() => _date = d)),
           const SizedBox(height: 12),
@@ -100,14 +103,22 @@ class _FinishScreenState extends State<FinishScreen> {
             decoration: InputDecoration(labelText: 'Duration (h:mm)', hintText: '0:45', errorText: _error),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _notes, minLines: 3, maxLines: 6, decoration: const InputDecoration(labelText: 'Notes')),
+          TextField(
+            controller: _notes,
+            minLines: 3,
+            maxLines: 6,
+            decoration: const InputDecoration(labelText: 'Notes'),
+          ),
           const SizedBox(height: 16),
           FilledButton(onPressed: _save, child: const Text('Save')),
           if (w.status != WorkoutStatus.done)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text('Saving marks every exercise as done.',
-                  textAlign: TextAlign.center, style: TextStyle(color: c.textSecondary)),
+              child: Text(
+                'Saving marks every exercise as done.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: c.textSecondary),
+              ),
             ),
         ],
       ),

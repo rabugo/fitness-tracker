@@ -34,8 +34,12 @@ class _LogScreenState extends State<LogScreen> with LoadsFromRepo {
   }
 
   Future<void> _discard(Workout w) async {
-    final yes = await confirm(context,
-        title: 'Discard workout?', message: 'Everything logged in it is removed.', action: 'Discard');
+    final yes = await confirm(
+      context,
+      title: 'Discard workout?',
+      message: 'Everything logged in it is removed.',
+      action: 'Discard',
+    );
     if (yes) await repo.deleteWorkout(w.id);
   }
 
@@ -50,49 +54,46 @@ class _LogScreenState extends State<LogScreen> with LoadsFromRepo {
           child: !_loaded
               ? const SizedBox.shrink()
               : open != null
-                  ? Card(
-                      elevation: 0,
-                      color: c.element,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          spacing: 8,
-                          children: [
-                            Text(
-                              open.status == WorkoutStatus.live ? 'Workout in progress' : 'Past workout not saved yet',
-                              style: TextStyle(color: c.warning, fontWeight: FontWeight.w700),
-                            ),
-                            Text(open.name, style: Theme.of(context).textTheme.headlineMedium),
-                            Text(formatDate(open.date), style: TextStyle(color: c.textSecondary)),
-                            const SizedBox(height: 8),
-                            FilledButton(
-                              onPressed: () => pushScreen(context, WorkoutScreen(workoutId: open.id)),
-                              child: const Text('Resume'),
-                            ),
-                            TextButton(onPressed: () => _discard(open), child: const Text('Discard')),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Column(
+              ? Card(
+                  elevation: 0,
+                  color: c.element,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      spacing: 16,
+                      spacing: 8,
                       children: [
+                        Text(
+                          open.status == WorkoutStatus.live ? 'Workout in progress' : 'Past workout not saved yet',
+                          style: TextStyle(color: c.warning, fontWeight: FontWeight.w700),
+                        ),
+                        Text(open.name, style: Theme.of(context).textTheme.headlineMedium),
+                        Text(formatDate(open.date), style: TextStyle(color: c.textSecondary)),
+                        const SizedBox(height: 8),
                         FilledButton(
-                          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(64)),
-                          onPressed: () => _start(WorkoutStatus.live),
-                          child: const Text('Start workout'),
+                          onPressed: () => pushScreen(context, WorkoutScreen(workoutId: open.id)),
+                          child: const Text('Resume'),
                         ),
-                        TextButton(
-                          onPressed: () => _start(WorkoutStatus.manual),
-                          child: const Text('Log a past workout'),
-                        ),
+                        TextButton(onPressed: () => _discard(open), child: const Text('Discard')),
                       ],
                     ),
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 16,
+                  children: [
+                    FilledButton(
+                      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(64)),
+                      onPressed: () => _start(WorkoutStatus.live),
+                      child: const Text('Start workout'),
+                    ),
+                    TextButton(onPressed: () => _start(WorkoutStatus.manual), child: const Text('Log a past workout')),
+                  ],
+                ),
         ),
       ),
     );

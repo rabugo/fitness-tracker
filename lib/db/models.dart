@@ -13,15 +13,21 @@ List<Measure> parseMeasures(String s) =>
 String measuresToString(List<Measure> m) => m.map((x) => x.name).join(',');
 
 class Exercise {
-  Exercise({required this.id, required this.name, required this.category, required this.measures, required this.builtIn});
+  Exercise({
+    required this.id,
+    required this.name,
+    required this.category,
+    required this.measures,
+    required this.builtIn,
+  });
 
   factory Exercise.fromRow(Map<String, Object?> r) => Exercise(
-        id: r['id'] as int,
-        name: r['name'] as String,
-        category: Category.values.byName(r['category'] as String),
-        measures: parseMeasures(r['measures'] as String),
-        builtIn: r['built_in'] == 1,
-      );
+    id: r['id'] as int,
+    name: r['name'] as String,
+    category: Category.values.byName(r['category'] as String),
+    measures: parseMeasures(r['measures'] as String),
+    builtIn: r['built_in'] == 1,
+  );
 
   final int id;
   final String name;
@@ -42,14 +48,14 @@ class Workout {
   });
 
   factory Workout.fromRow(Map<String, Object?> r) => Workout(
-        id: r['id'] as int,
-        name: r['name'] as String,
-        date: r['date'] as String,
-        durationSeconds: r['duration_seconds'] as int?,
-        notes: r['notes'] as String?,
-        status: WorkoutStatus.values.byName(r['status'] as String),
-        planId: r['plan_id'] as int?,
-      );
+    id: r['id'] as int,
+    name: r['name'] as String,
+    date: r['date'] as String,
+    durationSeconds: r['duration_seconds'] as int?,
+    notes: r['notes'] as String?,
+    status: WorkoutStatus.values.byName(r['status'] as String),
+    planId: r['plan_id'] as int?,
+  );
 
   final int id;
   final String name;
@@ -80,16 +86,16 @@ class WorkoutExercise {
   });
 
   factory WorkoutExercise.fromRow(Map<String, Object?> r) => WorkoutExercise(
-        id: r['id'] as int,
-        workoutId: r['workout_id'] as int,
-        exerciseId: r['exercise_id'] as int,
-        position: r['position'] as int,
-        notes: r['notes'] as String?,
-        done: r['done'] == 1,
-        name: r['name'] as String,
-        measures: parseMeasures(r['measures'] as String),
-        setCount: (r['set_count'] as int?) ?? 0,
-      );
+    id: r['id'] as int,
+    workoutId: r['workout_id'] as int,
+    exerciseId: r['exercise_id'] as int,
+    position: r['position'] as int,
+    notes: r['notes'] as String?,
+    done: r['done'] == 1,
+    name: r['name'] as String,
+    measures: parseMeasures(r['measures'] as String),
+    setCount: (r['set_count'] as int?) ?? 0,
+  );
 
   final int id;
   final int workoutId;
@@ -128,16 +134,16 @@ class WorkoutSet extends SetValues {
   });
 
   factory WorkoutSet.fromRow(Map<String, Object?> r) => WorkoutSet(
-        id: r['id'] as int,
-        workoutExerciseId: r['workout_exercise_id'] as int,
-        position: r['position'] as int,
-        reps: r['reps'] as int?,
-        weightKg: (r['weight_kg'] as num?)?.toDouble(),
-        timeSeconds: r['time_seconds'] as int?,
-        distanceKm: (r['distance_km'] as num?)?.toDouble(),
-        startedAt: r['started_at'] as int?,
-        restSeconds: r['rest_seconds'] as int?,
-      );
+    id: r['id'] as int,
+    workoutExerciseId: r['workout_exercise_id'] as int,
+    position: r['position'] as int,
+    reps: r['reps'] as int?,
+    weightKg: (r['weight_kg'] as num?)?.toDouble(),
+    timeSeconds: r['time_seconds'] as int?,
+    distanceKm: (r['distance_km'] as num?)?.toDouble(),
+    startedAt: r['started_at'] as int?,
+    restSeconds: r['rest_seconds'] as int?,
+  );
 
   final int id;
   final int workoutExerciseId;

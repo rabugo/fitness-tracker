@@ -34,7 +34,10 @@ String formatLastTime(List<WorkoutSet>? sets, List<Measure> measures) {
   final lines = sets.map((s) => formatSetValues(s, measures)).toList();
   if (lines.every((l) => l == lines.first)) {
     final one = sets.first;
-    if (measures.contains(Measure.reps) && measures.contains(Measure.weight) && one.reps != null && one.weightKg != null) {
+    if (measures.contains(Measure.reps) &&
+        measures.contains(Measure.weight) &&
+        one.reps != null &&
+        one.weightKg != null) {
       return 'Last: ${sets.length} × ${one.reps} @ ${formatNumber(one.weightKg!)} kg';
     }
     return sets.length > 1 ? 'Last: ${sets.length} × ${lines.first}' : 'Last: ${lines.first}';

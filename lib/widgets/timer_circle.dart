@@ -5,13 +5,19 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../util/format.dart';
 
-/// idle: waiting to start a set; running: set timer (blue); stopped: set just stopped,
-/// time held while I enter reps etc.; resting: rest timer (orange).
+/// idle: waiting to start a set; running: set timer (blue); stopped: set paused, time held
+/// while I enter reps, tap to continue (yellow); resting: rest timer (red).
 enum TimerMode { idle, running, stopped, resting }
 
 /// The big tap target. The ring fills once per minute, then starts a new lap.
 class TimerCircle extends StatelessWidget {
-  const TimerCircle({super.key, required this.mode, required this.seconds, required this.idleLabel, required this.onTap});
+  const TimerCircle({
+    super.key,
+    required this.mode,
+    required this.seconds,
+    required this.idleLabel,
+    required this.onTap,
+  });
 
   static const size = 260.0;
 
@@ -23,7 +29,11 @@ class TimerCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final ring = mode == TimerMode.resting ? c.warning : c.primary;
+    final ring = switch (mode) {
+      TimerMode.resting => c.rest,
+      TimerMode.stopped => c.paused,
+      _ => c.primary,
+    };
     final s = seconds < 0 ? 0.0 : seconds;
     final progress = mode == TimerMode.idle ? 0.0 : (s % 60) / 60;
 
@@ -32,7 +42,7 @@ class TimerCircle extends StatelessWidget {
       label: switch (mode) {
         TimerMode.idle => idleLabel,
         TimerMode.running => 'Stop set',
-        TimerMode.stopped => 'Set stopped',
+        TimerMode.stopped => 'Continue set',
         TimerMode.resting => 'Start next set',
       },
       child: Center(
@@ -43,7 +53,7 @@ class TimerCircle extends StatelessWidget {
             shape: const CircleBorder(),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: mode == TimerMode.stopped ? null : onTap,
+              onTap: onTap,
               child: CustomPaint(
                 painter: _RingPainter(
                   progress: progress,
@@ -62,13 +72,24 @@ class TimerCircle extends StatelessWidget {
 
   Widget _label(AppColors c, double s) {
     if (mode == TimerMode.idle) {
-      return Text(idleLabel, style: TextStyle(color: c.primary, fontSize: 24, fontWeight: FontWeight.w600));
+      return Text(
+        idleLabel,
+        style: TextStyle(color: c.primary, fontSize: 24, fontWeight: FontWeight.w600),
+      );
     }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (mode == TimerMode.resting)
-          Text('Rest', style: TextStyle(color: c.warning, fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(
+            'Rest',
+            style: TextStyle(color: c.rest, fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+        if (mode == TimerMode.stopped)
+          Text(
+            'Paused',
+            style: TextStyle(color: c.paused, fontSize: 18, fontWeight: FontWeight.w600),
+          ),
         Text(
           formatClock(s),
           style: TextStyle(
@@ -113,5 +134,8 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress || old.ringColor != ringColor || old.trackColor != trackColor || old.showProgress != showProgress;
+      old.progress != progress ||
+      old.ringColor != ringColor ||
+      old.trackColor != trackColor ||
+      old.showProgress != showProgress;
 }

@@ -40,8 +40,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> with LoadsFro
   }
 
   Future<void> _delete(Workout w) async {
-    final yes = await confirm(context,
-        title: 'Delete workout?', message: '${w.name} on ${formatDate(w.date)} is removed for good.', action: 'Delete');
+    final yes = await confirm(
+      context,
+      title: 'Delete workout?',
+      message: '${w.name} on ${formatDate(w.date)} is removed for good.',
+      action: 'Delete',
+    );
     if (!yes) return;
     await repo.deleteWorkout(w.id);
     if (mounted) Navigator.of(context).pop();
@@ -55,7 +59,9 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> with LoadsFro
     if (w == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text('This workout was deleted.', style: TextStyle(color: c.textSecondary))),
+        body: Center(
+          child: Text('This workout was deleted.', style: TextStyle(color: c.textSecondary)),
+        ),
       );
     }
     return Scaffold(
@@ -63,7 +69,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> with LoadsFro
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('${formatDate(w.date)} · ${formatDuration(w.durationSeconds)}', style: TextStyle(color: c.textSecondary)),
+          Text(
+            '${formatDate(w.date)} · ${formatDuration(w.durationSeconds)}',
+            style: TextStyle(color: c.textSecondary),
+          ),
           if (w.notes != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(w.notes!)),
           const SizedBox(height: 16),
           for (final (we, sets) in _exercises)
@@ -87,7 +96,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> with LoadsFro
           ),
           const SizedBox(height: 12),
           OutlinedButton(
-            style: OutlinedButton.styleFrom(foregroundColor: c.danger, side: BorderSide(color: c.danger)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: c.danger,
+              side: BorderSide(color: c.danger),
+            ),
             onPressed: () => _delete(w),
             child: const Text('Delete'),
           ),

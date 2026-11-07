@@ -23,13 +23,16 @@ class Repo {
   /// The sets from the most recent saved workout that contains each exercise, keyed by
   /// exercise id. [excludeWorkoutId] leaves out the workout being logged.
   Future<Map<int, List<WorkoutSet>>> lastSetsByExercise({int? excludeWorkoutId}) async {
-    final rows = await db.rawQuery('''
+    final rows = await db.rawQuery(
+      '''
       SELECT we.exercise_id AS ex_id, we.id AS we_id, s.*
         FROM workout_set s
         JOIN workout_exercise we ON we.id = s.workout_exercise_id
         JOIN workout w ON w.id = we.workout_id
        WHERE w.status = 'done' AND w.id != ?
-       ORDER BY w.date DESC, w.id DESC, we.position, s.position''', [excludeWorkoutId ?? -1]);
+       ORDER BY w.date DESC, w.id DESC, we.position, s.position''',
+      [excludeWorkoutId ?? -1],
+    );
     final used = <int, int>{}; // exercise id -> workout_exercise id it came from
     final result = <int, List<WorkoutSet>>{};
     for (final r in rows) {
@@ -46,8 +49,7 @@ class Repo {
 
   /// A workout that was started (live) or is being typed in (manual) and isn't saved yet.
   Future<Workout?> openWorkout() async {
-    final rows = await db.rawQuery(
-        "SELECT * FROM workout WHERE status IN ('live', 'manual') ORDER BY id DESC LIMIT 1");
+    final rows = await db.rawQuery("SELECT * FROM workout WHERE status IN ('live', 'manual') ORDER BY id DESC LIMIT 1");
     return rows.isEmpty ? null : Workout.fromRow(rows.first);
   }
 
@@ -78,12 +80,13 @@ class Repo {
 
   /// First set's start to last set's end, in seconds. Null when no set was timed.
   Future<int?> timedDuration(int workoutId) async {
-    final r = (await db.rawQuery('''
+    final r = (await db.rawQuery(
+      '''
       SELECT MIN(s.started_at) AS first, MAX(s.started_at + s.time_seconds * 1000) AS last
         FROM workout_set s JOIN workout_exercise we ON we.id = s.workout_exercise_id
        WHERE we.workout_id = ? AND s.started_at IS NOT NULL AND s.time_seconds IS NOT NULL''',
-        [workoutId]))
-        .first;
+      [workoutId],
+    )).first;
     final first = r['first'] as int?;
     final last = r['last'] as int?;
     if (first == null || last == null) return null;
@@ -91,8 +94,13 @@ class Repo {
   }
 
   /// Saves the workout: every exercise is marked done and the workout is done.
-  Future<void> finishWorkout(int id,
-      {required String name, required String date, required int? durationSeconds, required String? notes}) async {
+  Future<void> finishWorkout(
+    int id, {
+    required String name,
+    required String date,
+    required int? durationSeconds,
+    required String? notes,
+  }) async {
     await db.transaction((txn) async {
       await txn.update('workout_exercise', {'done': 1}, where: 'workout_id = ?', whereArgs: [id]);
       await txn.update(
@@ -107,11 +115,14 @@ class Repo {
 
   /// Saved workouts between two ISO dates (inclusive), with how many exercises each has.
   Future<List<WeekWorkout>> workoutsBetween(String fromIso, String toIso) async {
-    final rows = await db.rawQuery('''
+    final rows = await db.rawQuery(
+      '''
       SELECT w.*, (SELECT COUNT(*) FROM workout_exercise we WHERE we.workout_id = w.id) AS exercise_count
         FROM workout w
        WHERE w.status = 'done' AND w.date BETWEEN ? AND ?
-       ORDER BY w.date, w.id''', [fromIso, toIso]);
+       ORDER BY w.date, w.id''',
+      [fromIso, toIso],
+    );
     return rows.map((r) => WeekWorkout(Workout.fromRow(r), r['exercise_count'] as int)).toList();
   }
 
@@ -133,10 +144,12 @@ class Repo {
   }
 
   Future<int> addWorkoutExercise(int workoutId, int exerciseId) async {
-    final id = await db.rawInsert('''
+    final id = await db.rawInsert(
+      '''
       INSERT INTO workout_exercise (workout_id, exercise_id, position)
       VALUES (?, ?, (SELECT COALESCE(MAX(position), 0) + 1 FROM workout_exercise WHERE workout_id = ?))''',
-        [workoutId, exerciseId, workoutId]);
+      [workoutId, exerciseId, workoutId],
+    );
     _changed();
     return id;
   }
@@ -167,8 +180,12 @@ class Repo {
   // ---------- Sets ----------
 
   Future<List<WorkoutSet>> sets(int workoutExerciseId) async {
-    final rows = await db.query('workout_set',
-        where: 'workout_exercise_id = ?', whereArgs: [workoutExerciseId], orderBy: 'position');
+    final rows = await db.query(
+      'workout_set',
+      where: 'workout_exercise_id = ?',
+      whereArgs: [workoutExerciseId],
+      orderBy: 'position',
+    );
     return rows.map(WorkoutSet.fromRow).toList();
   }
 
@@ -176,14 +193,18 @@ class Repo {
   /// ends now and is saved on that set. Not after reopening a done exercise: that rest was dropped.
   Future<void> startSet(int workoutExerciseId, int now, {required bool endRest}) async {
     await db.transaction((txn) async {
-      final rows = await txn.query('workout_set',
-          where: 'workout_exercise_id = ?', whereArgs: [workoutExerciseId], orderBy: 'position DESC', limit: 1);
+      final rows = await txn.query(
+        'workout_set',
+        where: 'workout_exercise_id = ?',
+        whereArgs: [workoutExerciseId],
+        orderBy: 'position DESC',
+        limit: 1,
+      );
       final last = rows.isEmpty ? null : WorkoutSet.fromRow(rows.first);
       final end = last?.endedAt;
       if (endRest && last != null && end != null && last.restSeconds == null) {
         final rest = ((now - end) / 1000).round();
-        await txn.update('workout_set', {'rest_seconds': rest < 0 ? 0 : rest},
-            where: 'id = ?', whereArgs: [last.id]);
+        await txn.update('workout_set', {'rest_seconds': rest < 0 ? 0 : rest}, where: 'id = ?', whereArgs: [last.id]);
       }
       await txn.insert('workout_set', {
         'workout_exercise_id': workoutExerciseId,
@@ -220,10 +241,12 @@ class Repo {
   }
 
   Future<void> addManualSet(int workoutExerciseId, SetValues v) async {
-    await db.rawInsert('''
+    await db.rawInsert(
+      '''
       INSERT INTO workout_set (workout_exercise_id, position, reps, weight_kg, time_seconds, distance_km)
       VALUES (?, (SELECT COALESCE(MAX(position), 0) + 1 FROM workout_set WHERE workout_exercise_id = ?), ?, ?, ?, ?)''',
-        [workoutExerciseId, workoutExerciseId, v.reps, v.weightKg, v.timeSeconds, v.distanceKm]);
+      [workoutExerciseId, workoutExerciseId, v.reps, v.weightKg, v.timeSeconds, v.distanceKm],
+    );
     _changed();
   }
 

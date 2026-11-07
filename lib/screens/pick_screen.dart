@@ -36,9 +36,11 @@ class _PickScreenState extends State<PickScreen> with LoadsFromRepo {
   Future<void> _pick(Exercise e) async {
     final weId = await repo.addWorkoutExercise(widget.workoutId, e.id);
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (_) => ExerciseScreen(workoutId: widget.workoutId, workoutExerciseId: weId),
-    ));
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ExerciseScreen(workoutId: widget.workoutId, workoutExerciseId: weId),
+      ),
+    );
   }
 
   String _title(Category? c) => c == null ? 'All' : '${c.name[0].toUpperCase()}${c.name.substring(1)}';
@@ -86,7 +88,9 @@ class _PickScreenState extends State<PickScreen> with LoadsFromRepo {
           ),
           Expanded(
             child: shown.isEmpty
-                ? Center(child: Text('No exercise matches “$_query”.', style: TextStyle(color: c.textSecondary)))
+                ? Center(
+                    child: Text('No exercise matches “$_query”.', style: TextStyle(color: c.textSecondary)),
+                  )
                 : ListView.separated(
                     itemCount: shown.length,
                     separatorBuilder: (_, _) => const Divider(height: 1),
@@ -94,7 +98,10 @@ class _PickScreenState extends State<PickScreen> with LoadsFromRepo {
                       final e = shown[i];
                       return ListTile(
                         title: Text(e.name),
-                        subtitle: Text(formatLastTime(_last[e.id], e.measures), style: TextStyle(color: c.textSecondary)),
+                        subtitle: Text(
+                          formatLastTime(_last[e.id], e.measures),
+                          style: TextStyle(color: c.textSecondary),
+                        ),
                         onTap: () => _pick(e),
                       );
                     },

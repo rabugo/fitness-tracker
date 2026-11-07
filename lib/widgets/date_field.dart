@@ -4,7 +4,13 @@ import '../util/format.dart';
 
 /// A date shown as DD/MM/YYYY; tapping it opens the date picker. No dates in the future.
 class DateField extends StatelessWidget {
-  const DateField({super.key, required this.label, required this.value, required this.onChanged, this.centered = false});
+  const DateField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.centered = false,
+  });
 
   final String label;
   final String value; // YYYY-MM-DD

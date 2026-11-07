@@ -44,10 +44,17 @@ class _HistoryScreenState extends State<HistoryScreen> with LoadsFromRepo {
         children: [
           Row(
             children: [
-              IconButton(tooltip: 'Previous week', onPressed: () => _moveWeek(-7), icon: const Icon(Icons.chevron_left)),
+              IconButton(
+                tooltip: 'Previous week',
+                onPressed: () => _moveWeek(-7),
+                icon: const Icon(Icons.chevron_left),
+              ),
               Expanded(
-                child: Text('${formatDate(_from)} – ${formatDate(_to)}',
-                    textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700)),
+                child: Text(
+                  '${formatDate(_from)} – ${formatDate(_to)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
               ),
               IconButton(tooltip: 'Next week', onPressed: () => _moveWeek(7), icon: const Icon(Icons.chevron_right)),
             ],
@@ -79,14 +86,22 @@ class _HistoryScreenState extends State<HistoryScreen> with LoadsFromRepo {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 4,
         children: [
-          Text('${weekdayName(day)} ${formatDate(iso).substring(0, 5)}',
-              style: TextStyle(color: iso == today ? c.primary : c.textSecondary, fontSize: 13)),
+          Text(
+            '${weekdayName(day)} ${formatDate(iso).substring(0, 5)}',
+            style: TextStyle(color: iso == today ? c.primary : c.textSecondary, fontSize: 13),
+          ),
           if (list.isEmpty)
-            Padding(padding: const EdgeInsets.only(left: 8), child: Text('–', style: TextStyle(color: c.border)))
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text('–', style: TextStyle(color: c.border)),
+            )
           else
             for (final w in list)
               Material(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.border)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: c.border),
+                ),
                 clipBehavior: Clip.antiAlias,
                 color: Colors.transparent,
                 child: ListTile(
@@ -96,8 +111,11 @@ class _HistoryScreenState extends State<HistoryScreen> with LoadsFromRepo {
                     '${w.exerciseCount == 1 ? 'exercise' : 'exercises'}',
                     style: TextStyle(color: c.textSecondary),
                   ),
-                  onTap: () => pushScreen(context, WorkoutDetailScreen(workoutId: w.workout.id),
-                      name: WorkoutDetailScreen.routeName),
+                  onTap: () => pushScreen(
+                    context,
+                    WorkoutDetailScreen(workoutId: w.workout.id),
+                    name: WorkoutDetailScreen.routeName,
+                  ),
                 ),
               ),
         ],
@@ -114,11 +132,11 @@ class _Total extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-        child: Column(
-          children: [
-            Text(value, style: Theme.of(context).textTheme.headlineMedium),
-            Text(label, style: TextStyle(color: AppColors.of(context).textSecondary)),
-          ],
-        ),
-      );
+    child: Column(
+      children: [
+        Text(value, style: Theme.of(context).textTheme.headlineMedium),
+        Text(label, style: TextStyle(color: AppColors.of(context).textSecondary)),
+      ],
+    ),
+  );
 }

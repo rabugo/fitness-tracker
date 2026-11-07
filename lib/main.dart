@@ -50,7 +50,10 @@ class HomeShell extends StatelessWidget {
           destinations: const [
             NavigationDestination(icon: Icon(Icons.timer_outlined), selectedIcon: Icon(Icons.timer), label: 'Log'),
             NavigationDestination(
-                icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'History'),
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: 'History',
+            ),
           ],
         ),
       ),

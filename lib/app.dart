@@ -31,12 +31,21 @@ mixin LoadsFromRepo<T extends StatefulWidget> on State<T> {
   }
 }
 
-Future<T?> pushScreen<T>(BuildContext context, Widget screen, {String? name}) =>
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen, settings: RouteSettings(name: name)));
+Future<T?> pushScreen<T>(BuildContext context, Widget screen, {String? name}) => Navigator.of(context).push(
+  MaterialPageRoute(
+    builder: (_) => screen,
+    settings: RouteSettings(name: name),
+  ),
+);
 
 /// A yes/no question before something that can't be undone.
-Future<bool> confirm(BuildContext context,
-    {required String title, required String message, required String action, String cancel = 'Keep'}) async {
+Future<bool> confirm(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String action,
+  String cancel = 'Keep',
+}) async {
   final yes = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
