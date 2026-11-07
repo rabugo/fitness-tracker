@@ -18,6 +18,10 @@ class _LogScreenState extends State<LogScreen> with LoadsFromRepo {
   Workout? _open;
   bool _loaded = false;
 
+  /// While a new workout is being opened, this tab keeps showing Start workout underneath,
+  /// instead of flashing the Resume card for the workout it just created.
+  bool _starting = false;
+
   @override
   Future<void> load() async {
     final open = await repo.openWorkout();
@@ -29,8 +33,12 @@ class _LogScreenState extends State<LogScreen> with LoadsFromRepo {
   }
 
   Future<void> _start(WorkoutStatus status) async {
+    setState(() => _starting = true);
     final id = await repo.createWorkout(status);
-    if (mounted) pushScreen(context, WorkoutScreen(workoutId: id));
+    if (!mounted) return;
+    await pushScreen(context, WorkoutScreen(workoutId: id));
+    // Back on the Log tab: now the Resume card may show.
+    if (mounted) setState(() => _starting = false);
   }
 
   Future<void> _discard(Workout w) async {
@@ -46,7 +54,7 @@ class _LogScreenState extends State<LogScreen> with LoadsFromRepo {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final open = _open;
+    final open = _starting ? null : _open;
     return SafeArea(
       child: Center(
         child: Padding(

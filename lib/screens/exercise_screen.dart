@@ -90,10 +90,15 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
         s?.restSeconds == null;
   }
 
+  /// The set that's stopped and waiting for its reps/kg (paused, yellow), but only once its
+  /// stopped time is loaded: the form has to start with that time filled in.
+  WorkoutSet? get _paused => _sets.where((s) => s.id == _enteringId && s.timeSeconds != null).firstOrNull;
+
   Future<void> _tapCircle() async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final running = _running;
-    final paused = _sets.where((s) => s.id == _enteringId).firstOrNull;
+    final paused = _paused;
+    if (_enteringId != null && paused == null) return; // the stop is still being saved
     if (paused != null) {
       await _continueSet(paused);
     } else if (running != null) {
@@ -107,10 +112,18 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
   }
 
   Future<void> _saveEntering(SetValues v) async {
-    final id = _enteringId;
-    if (id == null) return;
+    final paused = _paused;
+    if (paused == null) return;
+    // A timed set always keeps a time: an emptied time field keeps the stopped time,
+    // otherwise the set would read as still running.
+    final values = SetValues(
+      reps: v.reps,
+      weightKg: v.weightKg,
+      timeSeconds: v.timeSeconds ?? paused.timeSeconds,
+      distanceKm: v.distanceKm,
+    );
     setState(() => _enteringId = null);
-    await repo.updateSet(id, v);
+    await repo.updateSet(paused.id, values);
   }
 
   /// Stopped by accident: the set runs again from its original start. The paused state is
@@ -160,7 +173,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> with LoadsFromRepo, Wid
     final c = AppColors.of(context);
     final now = DateTime.now().millisecondsSinceEpoch;
     final running = _running;
-    final entering = _sets.where((s) => s.id == _enteringId).firstOrNull;
+    final entering = _paused;
     final next = _sets.length + 1;
 
     final mode = running != null
